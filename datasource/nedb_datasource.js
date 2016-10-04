@@ -1,14 +1,15 @@
 var NeDBCollection = alchemy.use('nedb'),
+    libpath = alchemy.use('path'),
     bson = alchemy.use('bson').BSONPure.BSON;
 
 /**
  * NeDB Datasource, based on MongoDB
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  */
-var NeDB = Function.inherits('MongoDatasource', function NedbDatasource(name, _options) {
+var NeDB = Function.inherits('Alchemy.MongoDatasource', function NedbDatasource(name, _options) {
 
 	var options,
 	    uri;
@@ -27,45 +28,71 @@ var NeDB = Function.inherits('MongoDatasource', function NedbDatasource(name, _o
 /**
  * Prepare value to be stored in the database
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  */
-NeDB.setMethod(function _valueToDatasource(field, value) {
+NeDB.setMethod(function _valueToDatasource(field, value, data, callback) {
+
+	var result;
 
 	switch (field.datatype) {
 
 		case 'objectid':
-			return ''+value;
+			result = ''+value;
+			break;
 
 		default:
-			return value;
+			result = value;
 	};
+
+	setImmediate(function immediateDelay() {
+		callback(null, result);
+	});
 });
 
 /**
  * Prepare value to be returned to the app
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  */
-NeDB.setMethod(function _valueToApp(field, value) {
+NeDB.setMethod(function _valueToApp(field, query, options, value, callback) {
+
+	var result;
 
 	switch (field.datatype) {
 
 		case 'objectid':
-			return alchemy.castObjectId(value);
+			result = alchemy.castObjectId(value);
 
 		default:
-			return value;
+			result = value;
 	};
+
+	setImmediate(function immediateDelay() {
+		callback(null, result);
+	});
+});
+
+/**
+ * Get a connection to the database
+ *
+ * @author   Jelle De Loecker   <jelle@develry.be>
+ * @since    0.3.0
+ * @version  0.3.0
+ *
+ * @param    {Function}   callback
+ */
+NeDB.setMethod(function connect(callback) {
+	if (callback) callback(null);
 });
 
 /**
  * Get an NeDB collection
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  *
@@ -87,7 +114,8 @@ NeDB.setMethod(function collection(name, callback) {
 	}
 
 	if (this.options.folder) {
-		collection = new NeDBCollection({filename: APP_ROOT + '/' + this.options.folder + '/' + name + '.db', autoload: true});
+		folderPath = libpath.resolve(APP_ROOT, this.options.folder, name + '.nedb');
+		collection = new NeDBCollection({filename: folderPath, autoload: true});
 	} else {
 		collection = new NeDBCollection();
 	}
@@ -100,7 +128,7 @@ NeDB.setMethod(function collection(name, callback) {
 /**
  * Create a record in the database
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  */
@@ -113,7 +141,15 @@ NeDB.setMethod(function _create(model, data, options, callback) {
 		}
 
 		collection.insert(data, function afterInsert(err, result) {
-			callback(err, result);
+
+			// Clear the cache
+			model.nukeCache();
+
+			if (err != null) {
+				return callback(err, result);
+			}
+
+			callback(null, Object.assign({}, data));
 		});
 	});
 });
@@ -121,7 +157,7 @@ NeDB.setMethod(function _create(model, data, options, callback) {
 /**
  * Query the database
  *
- * @author   Jelle De Loecker   <jelle@codedor.be>
+ * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    1.0.0
  * @version  1.0.0
  */
@@ -130,7 +166,9 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 	this.collection(model.table, function gotCollection(err, collection) {
 
 		var options,
-		    cursor
+		    cursor,
+		    temp,
+		    key;
 
 		if (err != null) {
 			return callback(err);
@@ -138,8 +176,32 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 
 		options = Object.assign({}, _options);
 
+		for (key in query) {
+			temp = query[key];
+
+			// ObjectID values always need to be strings in nedb
+			// This should be moved somewhere else, but it'll do for now
+			if (temp && typeof temp == 'object' && temp.constructor && temp.constructor.name == 'ObjectID') {
+				query[key] = ''+temp;
+			}
+		}
+
 		// Create the cursor
-		cursor = collection.find(query, options);
+		cursor = collection.find(query);
+
+		// NeDB doesn't support passing a second object to the find method,
+		// so we have to do it manually
+		if (options.sort) {
+			cursor.sort(options.sort);
+		}
+
+		if (options.skip) {
+			cursor.skip(options.skip);
+		}
+
+		if (options.limit) {
+			cursor.limit(options.limit);
+		}
 
 		Function.parallel({
 			available: function getAvailable(next) {
@@ -166,5 +228,50 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 
 			callback(err, data.items, data.available);
 		});
+	});
+});
+
+/**
+ * Ensure an index in the database
+ *
+ * @author   Jelle De Loecker   <jelle@develry.be>
+ * @since    0.2.0
+ * @version  0.2.0
+ */
+NeDB.setMethod(function _ensureIndex(model, index, callback) {
+
+	this.collection(model.table, function gotCollection(err, collection) {
+
+		var options,
+		    field,
+		    obj,
+		    key;
+
+		if (err != null) {
+			return callback(err);
+		}
+
+		if (Array.isArray(index.fields)) {
+			field = index.fields[0];
+		} else if (typeof index.fields == 'string') {
+			field = index.fields;
+		} else if (index.fields) {
+			field = Object.keys(index.fields)[0];
+		}
+
+		options = {
+			fieldName: field,
+			name: index.options.name
+		};
+
+		if (index.options.unique) {
+			options.unique = true;
+		}
+
+		if (index.options.sparse) {
+			options.sparse = true;
+		}
+
+		collection.ensureIndex(options, callback);
 	});
 });

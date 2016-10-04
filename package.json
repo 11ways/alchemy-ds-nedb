@@ -1,16 +1,16 @@
 {
 	"name": "alchemy-ds-nedb",
 	"description": "NeDB datasource plugin for Alchemy MVC",
-	"version": "1.0.0-alpha",
+	"version": "0.3.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/skerit/alchemy-ds-nedb.git"
 	},
 	"dependencies": {
-		"nedb": "0.11.x"
+		"nedb": "~1.8.0"
 	},
 	"license": "MIT",
 	"engines": {
-		"node": ">=0.10"
+		"node": ">=4.5.0"
 	}
 }
