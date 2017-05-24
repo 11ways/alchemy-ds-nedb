@@ -114,7 +114,7 @@ NeDB.setMethod(function collection(name, callback) {
 	}
 
 	if (this.options.folder) {
-		folderPath = libpath.resolve(APP_ROOT, this.options.folder, name + '.nedb');
+		folderPath = libpath.resolve(PATH_ROOT, this.options.folder, name + '.nedb');
 		collection = new NeDBCollection({filename: folderPath, autoload: true});
 	} else {
 		collection = new NeDBCollection();
@@ -158,8 +158,8 @@ NeDB.setMethod(function _create(model, data, options, callback) {
  * Query the database
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.1.0
+ * @version  0.4.0
  */
 NeDB.setMethod(function _read(model, query, _options, callback) {
 
@@ -176,15 +176,14 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 
 		options = Object.assign({}, _options);
 
-		for (key in query) {
-			temp = query[key];
-
+		// Primitive way to make sure objectids are cast to strings
+		Object.walk(query, function eachEntry(value, key, parent) {
 			// ObjectID values always need to be strings in nedb
 			// This should be moved somewhere else, but it'll do for now
-			if (temp && typeof temp == 'object' && temp.constructor && temp.constructor.name == 'ObjectID') {
-				query[key] = ''+temp;
+			if (value && typeof value == 'object' && value.constructor && value.constructor.name == 'ObjectID') {
+				parent[key] = ''+value;
 			}
-		}
+		});
 
 		// Create the cursor
 		cursor = collection.find(query);
