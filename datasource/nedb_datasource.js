@@ -1,13 +1,13 @@
 var NeDBCollection = alchemy.use('nedb'),
     libpath = alchemy.use('path'),
-    bson = alchemy.use('bson').BSONPure.BSON;
+    bson = alchemy.use('bson');
 
 /**
  * NeDB Datasource, based on MongoDB
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.4.0
+ * @version  0.4.0
  */
 var NeDB = Function.inherits('Alchemy.MongoDatasource', function NedbDatasource(name, _options) {
 
@@ -29,8 +29,8 @@ var NeDB = Function.inherits('Alchemy.MongoDatasource', function NedbDatasource(
  * Prepare value to be stored in the database
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.4.0
+ * @version  0.4.0
  */
 NeDB.setMethod(function _valueToDatasource(field, value, data, callback) {
 
@@ -55,8 +55,8 @@ NeDB.setMethod(function _valueToDatasource(field, value, data, callback) {
  * Prepare value to be returned to the app
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.4.0
+ * @version  0.4.0
  */
 NeDB.setMethod(function _valueToApp(field, query, options, value, callback) {
 
@@ -93,8 +93,8 @@ NeDB.setMethod(function connect(callback) {
  * Get an NeDB collection
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.4.0
+ * @version  0.5.0
  *
  * @param    {Function}   callback
  */
@@ -129,8 +129,8 @@ NeDB.setMethod(function collection(name, callback) {
  * Create a record in the database
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    1.0.0
- * @version  1.0.0
+ * @since    0.4.0
+ * @version  0.4.0
  */
 NeDB.setMethod(function _create(model, data, options, callback) {
 
