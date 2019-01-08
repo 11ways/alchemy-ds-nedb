@@ -104,8 +104,8 @@ NeDB.setMethod(function connect(callback) {
 NeDB.setMethod(function collection(name, callback) {
 
 	var that = this,
+	    folder_path,
 	    collection,
-	    folderPath,
 	    config;
 
 	if (this.collections[name]) {
@@ -117,11 +117,16 @@ NeDB.setMethod(function collection(name, callback) {
 	}
 
 	if (this.options.folder) {
-		folderPath = libpath.resolve(PATH_ROOT, this.options.folder, name + '.nedb');
-		collection = new NeDBCollection({filename: folderPath, autoload: true});
+		folder_path = libpath.resolve(PATH_ROOT, this.options.folder, name + '.nedb');
 	} else {
-		collection = new NeDBCollection();
+		console.warn('Storing database files in temporary folder');
+		folder_path = libpath.resolve(PATH_TEMP, 'nedb', name + '.nedb');
 	}
+
+	collection = new NeDBCollection({
+		filename: folder_path,
+		autoload: true
+	});
 
 	that.collections[name] = collection;
 
