@@ -25,6 +25,9 @@ var NeDB = Function.inherits('Alchemy.MongoDatasource', function NedbDatasource(
 	this.collections = {};
 });
 
+// Indicate this datasource does NOT support objectids
+NeDB.setSupport('objectid', false);
+
 /**
  * Prepare value to be stored in the database
  *
