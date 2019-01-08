@@ -239,6 +239,35 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 });
 
 /**
+ * Remove a record from the database
+ *
+ * @author   Jelle De Loecker <jelle@develry.be>
+ * @since    0.5.0
+ * @version  0.5.0
+ */
+NeDB.setMethod(function _remove(model, query, options, callback) {
+
+	this.collection(model.table, function gotCollection(err, collection) {
+
+		if (err != null) {
+			return callback(err);
+		}
+
+		collection.remove(query, {}, function removed(err, amount_removed){
+
+			if (err) {
+				return callback(err);
+			}
+
+			//clear cache
+			model.nukeCache();
+
+			callback(null, amount_removed);
+		});
+	});
+});
+
+/**
  * Ensure an index in the database
  *
  * @author   Jelle De Loecker   <jelle@develry.be>

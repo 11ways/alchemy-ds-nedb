@@ -3,6 +3,7 @@
 * Make compatible with alchemy >1.0.7
 * Indicate this datasource does not support ObjectIDs by setting the support flag to false
 * Store files in the `PATH_TEMP` folder when no folder path is given
+* Add `_remove()` implementation
 
 ## 0.4.0 (2017-08-27)
 
