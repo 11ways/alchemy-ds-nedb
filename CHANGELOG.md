@@ -1,4 +1,4 @@
-## 0.5.0 (WIP)
+## 0.5.0 (2019-01-14)
 
 * Make compatible with alchemy >1.0.7
 * Indicate this datasource does not support ObjectIDs by setting the support flag to false
