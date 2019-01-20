@@ -1,3 +1,7 @@
+## 0.6.0 (WIP)
+
+* Make compatible with alchemy >1.1.0
+
 ## 0.5.0 (2019-01-14)
 
 * Make compatible with alchemy >1.0.7

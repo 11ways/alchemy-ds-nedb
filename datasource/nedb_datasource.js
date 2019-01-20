@@ -9,7 +9,7 @@ var NeDBCollection = alchemy.use('nedb'),
  * @since    0.4.0
  * @version  0.4.0
  */
-var NeDB = Function.inherits('Alchemy.MongoDatasource', function NedbDatasource(name, _options) {
+var NeDB = Function.inherits('Alchemy.Datasource.Mongo', function Nedb(name, _options) {
 
 	var options,
 	    uri;
@@ -77,19 +77,6 @@ NeDB.setMethod(function _valueToApp(field, query, options, value, callback) {
 	setImmediate(function immediateDelay() {
 		callback(null, result);
 	});
-});
-
-/**
- * Get a connection to the database
- *
- * @author   Jelle De Loecker   <jelle@develry.be>
- * @since    0.3.0
- * @version  0.3.0
- *
- * @param    {Function}   callback
- */
-NeDB.setMethod(function connect(callback) {
-	if (callback) callback(null);
 });
 
 /**
