@@ -157,14 +157,15 @@ NeDB.setMethod(function _create(model, data, options, callback) {
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    0.1.0
- * @version  0.4.0
+ * @version  0.6.0
  */
-NeDB.setMethod(function _read(model, query, _options, callback) {
+NeDB.setMethod(function _read(model, criteria, callback) {
 
-	this.collection(model.table, function gotCollection(err, collection) {
+	var that = this;
 
-		var options,
-		    cursor,
+	this.collection(model.table, async function gotCollection(err, collection) {
+
+		var cursor,
 		    temp,
 		    key;
 
@@ -172,19 +173,16 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 			return callback(err);
 		}
 
-		options = Object.assign({}, _options);
+		let compiled,
+		    options;
 
-		// Primitive way to make sure objectids are cast to strings
-		Object.walk(query, function eachEntry(value, key, parent) {
-			// ObjectID values always need to be strings in nedb
-			// This should be moved somewhere else, but it'll do for now
-			if (value && typeof value == 'object' && value.constructor && value.constructor.name == 'ObjectID') {
-				parent[key] = ''+value;
-			}
-		});
+		await criteria.normalize();
+
+		compiled = await that.compileCriteria(criteria);
+		options = that.compileCriteriaOptions(criteria);
 
 		// Create the cursor
-		cursor = collection.find(query);
+		cursor = collection.find(compiled);
 
 		// NeDB doesn't support passing a second object to the find method,
 		// so we have to do it manually
@@ -203,13 +201,13 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 		Function.parallel({
 			available: function getAvailable(next) {
 
-				if (options.available === false) {
+				if (criteria.options.available === false) {
 					return next(null, null);
 				}
 
 				// NeDB has no count on the cursor,
 				// it is a separate method of the collection
-				collection.count(query, next);
+				collection.count(compiled, next);
 			},
 			items: function getItems(next) {
 				cursor.exec(next);
@@ -219,6 +217,8 @@ NeDB.setMethod(function _read(model, query, _options, callback) {
 			if (err != null) {
 				return callback(err);
 			}
+
+			data.items = that.organizeResultItems(model, data.items);
 
 			// There is no cache because NeDB stores everything in memory
 			// anyway, it seems kind of silly
