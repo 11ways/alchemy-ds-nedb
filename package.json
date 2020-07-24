@@ -1,7 +1,7 @@
 {
 	"name": "alchemy-ds-nedb",
 	"description": "NeDB datasource plugin for Alchemy MVC",
-	"version": "0.6.0-alpha",
+	"version": "0.6.0",
 	"repository": "skerit/alchemy-ds-nedb",
 	"dependencies": {
 		"nedb": "~1.8.0"
