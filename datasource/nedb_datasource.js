@@ -87,7 +87,7 @@ NeDB.setMethod(function _valueToApp(field, query, options, value, callback) {
  *
  * @author   Jelle De Loecker   <jelle@develry.be>
  * @since    0.4.0
- * @version  0.5.0
+ * @version  0.6.0
  *
  * @param    {Function}   callback
  */
@@ -106,10 +106,12 @@ NeDB.setMethod(function collection(name, callback) {
 		return;
 	}
 
-	if (this.options.folder) {
+	if (this.options.folder === false) {
+		console.warn('Storing database "' + name + '" in memory');
+	} else if (this.options.folder) {
 		folder_path = libpath.resolve(PATH_ROOT, this.options.folder, name + '.nedb');
 	} else {
-		console.warn('Storing database files in temporary folder');
+		console.warn('Storing database "' + name + '" files in temporary folder');
 		folder_path = libpath.resolve(PATH_TEMP, 'nedb', name + '.nedb');
 	}
 

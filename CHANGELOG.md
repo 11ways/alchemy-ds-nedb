@@ -1,6 +1,8 @@
-## 0.6.0 (WIP)
+## 0.6.0 (2020-07-24)
 
 * Make compatible with alchemy >1.1.0
+* Nullify the connect property of the NeDB datasource class
+* Enable using in-memory database
 
 ## 0.5.0 (2019-01-14)
 
